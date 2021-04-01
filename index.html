@@ -1,0 +1,265 @@
+<html>
+<head>
+<title>Marco Perez - Transformation of Stress</title>
+<link type="text/css" rel="stylesheet" href="main.css">
+<style>
+  body {
+    color: #222;
+  }
+
+  a {
+    color: #2fa1d6;
+  }
+
+  ax {
+    color: red;
+  }
+
+  ay {
+    color: green;
+  }
+
+  az {
+    color: blue;
+  }
+
+  aye {
+    color: yellow
+  }
+
+  pa {
+    max-width: 900px;
+    margin-left: 30px;
+    margin-right: auto;
+    padding: 0 2em;
+  }
+</style>
+</head>
+<body>    
+  
+  <script src="lib/three.min.js"></script>
+  <script src="lib/dat.gui.min.js"></script>
+  <script src="lib/ts.js"></script>
+  <script src="lib/math.min.js"></script>
+  <script src="https://unpkg.com/mathjs@9.3.0/lib/browser/math.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script type="module">
+  function init() {
+
+    var scene = new THREE.Scene();
+
+    var box = getBox(2, 2, 2, true);
+    var box2 = getBox(2, 2, 2);
+
+    scene.add(box);
+    scene.add(box2);
+
+    var plane = new THREE.GridHelper(10, 10);
+    scene.add(plane);
+
+    var cubeAxis = new THREE.AxesHelper(5);
+    
+    box2.add(cubeAxis);
+    box.add(cubeAxis);
+    
+    var camera = new THREE.PerspectiveCamera(70, 
+    window.innerWidth/window.innerHeight, 0.1, 1000 ); // Specify camera type like this
+    camera.position.set(2,2.5,5.5); // Set position like this
+    camera.lookAt(new THREE.Vector3(0,-1,-1)); // Set look at coordinate like this
+
+    var renderer = new THREE.WebGLRenderer();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    
+    const params = {
+      Tx: "100i + 50j -50k",
+      Ty: "50i + 200j",
+      Tz: "-50i + 200k",
+      N1: `(sqrt(3)/2)i + (1/4)j + (sqrt(3)/4)k`,
+      N2: `-(1/2)i + (sqrt(3)/4)j + (3/4)k`,
+      N3: `-(sqrt(3)/2)j + (1/2)k`
+  }
+
+  const gui = new dat.GUI({ width: 380});
+  let Tx = '';
+  let Ty = '';
+  let Tz = '';
+  let N1 = '';
+  let N2 = '';
+  let N3 = '';
+  const folder1 = gui.addFolder( 'Stress Tensors' );
+  const folder2 = gui.addFolder( 'Unit Vectors for Direction' );
+  folder1.add(params, "Tx", -5, 5).onFinishChange(function (value) {    
+      
+    
+  });
+
+  folder1.add(params, "Ty").onFinishChange(function (value) {    
+      
+    
+  });
+
+  folder1.add(params, "Tz").onFinishChange(function (value) {    
+      
+    
+  });
+
+  folder2.add(params, "N1").onFinishChange(function (value) {    
+      
+    
+  });
+
+  folder2.add(params, "N2").onFinishChange(function (value) {    
+      
+    
+  });
+
+
+  folder2.add(params, "N3").onFinishChange(function (value) {    
+      
+    
+  });
+
+  folder1.open();
+  folder2.open();
+
+  const obj = { add:function(){ 
+    reset(0,0,0);
+    const result = parse(params.Tx, params.Ty, params.Tz, params.N1, params.N2, params.N3);
+    const mj = function (tex) {
+      return MathJax.tex2svg(tex, {em: 16, ex: 6, display: false});
+    }
+    let parenthesis = 'keep'
+    /*document.getElementById("result").innerHTML = `
+      <ax>Inputs:</ax> <br/>
+      TX: ${result.input.qx} <br/>
+      TY: ${result.input.qy} <br/>
+      TZ: ${result.input.qz} <br/>      
+      N1: ${result.input.N1} <br/>
+      N2: ${result.input.N2} <br/>
+      N2: ${result.input.N3} <br/>
+      ${mj(math.parse(result.input.qx).toTex({parenthesis: parenthesis}))}
+
+    `;
+    */
+    const pretty = document.getElementById("result");
+    pretty.innerHTML = '';
+    pretty.appendChild(document.createTextNode('Input: '))
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Tx: '))
+    pretty.appendChild(mj(math.parse(result.input.qx).toTex({parenthesis: parenthesis})));    
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Ty: '))
+    pretty.appendChild(mj(math.parse(result.input.qy).toTex({parenthesis: parenthesis})));
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Tz: '))
+    pretty.appendChild(mj(math.parse(result.input.qz).toTex({parenthesis: parenthesis})));
+
+    pretty.appendChild(document.createElement('P'))
+    //pretty.appendChild(mj(math.parse(`[[${result.input.qxi}i, ${result.input.qxj}j, ${result.input.qxk}k], [${result.input.qyi}i, ,${result.input.qyj}j, ${result.input.qyk}k] , [${result.input.qzi}i, ${result.input.qzj}k, ${result.input.qzk}z]]`).toTex({parenthesis: parenthesis})));
+    pretty.appendChild(mj(math.parse(`[[${result.input.qxi}i,${result.input.qxj}j,${result.input.qxk}k], [${result.input.qyi}i,${result.input.qyj}j,${result.input.qyk}k], [${result.input.qzi}i,${result.input.qzj}j,${result.input.qzk}k]]`).toTex({parenthesis: parenthesis})));
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('N1: '))
+    pretty.appendChild(mj(math.parse(result.input.N1).toTex({parenthesis: parenthesis})));    
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('N2: '))
+    pretty.appendChild(mj(math.parse(result.input.N2).toTex({parenthesis: parenthesis})));
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('N3: '))
+    pretty.appendChild(mj(math.parse(result.input.N3).toTex({parenthesis: parenthesis})));
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Result: '))
+    pretty.appendChild(document.createElement('P'))
+    if (result.error) {
+      pretty.appendChild(document.createTextNode(`Error: ${result.error}`))
+      return;
+    }
+
+    pretty.appendChild(document.createTextNode('Unit Verctors OK'))
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Perpendicular Proof OK'))
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Q: '))
+    pretty.appendChild(mj(math.parse(`[[${result.T.QX.x.toFixed(2)}i,${result.T.QX.y.toFixed(2)}j,${result.T.QX.z.toFixed(2)}k], [${result.T.QY.x.toFixed(2)}i,${result.T.QY.y.toFixed(2)}j,${result.T.QY.z.toFixed(2)}k], [${result.T.QZ.x.toFixed(2)}i,${result.T.QZ.y.toFixed(2)}j,${result.T.QZ.z.toFixed(2)}k]]`).toTex({parenthesis: parenthesis})));
+
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode('Rotated Axis:'))
+    pretty.appendChild(document.createElement('P'))
+    pretty.appendChild(document.createTextNode(`α: ${result.rotValues.alpha.toFixed(2)} β: ${result.rotValues.beta.toFixed(2)} γ: ${result.rotValues.gamma.toFixed(2)}`));
+    
+    render(result.rotValues.alpha, result.rotValues.beta, result.rotValues.gamma)
+
+
+  },
+  reset: function() {
+    reset(0,0,0);
+  }};
+
+    gui.add(obj,'add').name('     Apply     ');
+    gui.add(obj,'reset').name('     Reset     ');
+
+    renderer.render(scene, camera);
+
+    function render(x,y,z) {
+      //requestAnimationFrame(render);
+      box.rotation.x = x;      
+      box.rotation.y = y;
+      box.rotation.z = z;
+      //renderer.render(scene, camera);
+      setTimeout(() => {
+        renderer.render(scene, camera);
+        //render();
+      }, 1000)
+    };
+
+    function reset(x,y,z) {      
+      box.rotation.x = x;      
+      box.rotation.y = y;      
+      box.rotation.z = z;      
+      renderer.render(scene, camera);
+    };
+
+    //render();
+  }
+
+  function getBox(w, h, d, color) {
+    
+    var geometry = new THREE.BoxGeometry(w, h, d, 5 , 5 , 5);
+    
+    if (color) {
+      var material = new THREE.MeshBasicMaterial({color: 0xfffff, wireframe: true});
+    }
+    else {
+      var material = new THREE.MeshBasicMaterial({color: 'gray', wireframe: true});
+    }
+
+
+
+    var mesh = new THREE.Mesh(geometry, material);
+
+    return mesh;
+  } 
+
+  init();
+
+  </script>  
+  <div id="info">
+    <p>
+      Transformation of Stress
+
+      <br/><br/>
+      
+      <a>Instructions </a><br/>
+      
+      Use the upper right corner boxes to specify the stress tensors and the unit vectors for new stress directions<br/>
+      <a>Axis </a> <ax>X: Red<ax/> <ay>Y: Green<ay/> <az>Z: Blue<az/> <br/>
+      <ay>==Press Apply== </ay>
+      
+    </p>
+    <p id=result></p>
+  </div>
+  
+</body>
+</html>
